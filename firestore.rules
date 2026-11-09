@@ -1,0 +1,200 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function verified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function owner(uid) { return verified() && request.auth.uid == uid; }
+    function admin() {
+      return verified() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.enabled == true;
+    }
+    function expiry(data) {
+      return data.expires_at == null
+        ? data.trial_started_at + duration.value(7, 'd') : data.expires_at;
+    }
+    function active(uid) {
+      let data = get(/databases/$(database)/documents/customer_access/$(uid)).data;
+      return data.status == 'active' && request.time < expiry(data);
+    }
+    function validAccess(data, uid) {
+      return data.keys().hasAll(['uid', 'email', 'trial_started_at', 'expires_at',
+          'status', 'last_seen_at', 'updated_at'])
+        && data.keys().hasOnly(['uid', 'email', 'trial_started_at', 'expires_at',
+          'status', 'last_seen_at', 'updated_at'])
+        && data.uid == uid && data.email is string && data.email.size() <= 320
+        && data.trial_started_at is timestamp && data.last_seen_at is timestamp
+        && data.updated_at is timestamp
+        && (data.expires_at == null || data.expires_at is timestamp)
+        && data.status in ['active', 'blocked'];
+    }
+    // Provision/revoke these documents only through trusted Firebase Console/IAM.
+    // A client, including the Admin APK, can NEVER grant itself an admin role.
+    match /admins/{uid} {
+      allow get: if owner(uid);
+      allow list, create, update, delete: if false;
+    }
+    match /customer_access/{uid} {
+      allow get: if owner(uid) || admin();
+      allow list: if admin() && request.query.limit <= 50;
+      allow create: if owner(uid) && validAccess(request.resource.data, uid)
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.trial_started_at == request.time
+        && request.resource.data.last_seen_at == request.time
+        && request.resource.data.updated_at == request.time
+        && request.resource.data.expires_at == null
+        && request.resource.data.status == 'active';
+      allow update: if validAccess(request.resource.data, uid) && (
+        (owner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email', 'last_seen_at'])
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.last_seen_at == request.time)
+        || (admin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'expires_at', 'updated_at'])
+          && request.resource.data.updated_at == request.time)
+      );
+      // Do not delete access documents: deletion would let the UID restart trial.
+      allow delete: if false;
+    }
+    // Authoritative server timestamp of the last allowed check-in.
+    match /customer_checkins/{uid} {
+      allow get: if owner(uid);
+      allow create, update: if owner(uid) && active(uid)
+        && request.resource.data.keys().hasOnly(['uid', 'verified_at'])
+        && request.resource.data.uid == uid
+        && request.resource.data.verified_at == request.time;
+      allow list, delete: if false;
+    }
+    // Device metadata is informational. The device ID is a random per-install
+    // UUID; no phone number, IMEI, serial number, or advertising ID is collected.
+    match /customer_devices/{uid}/devices/{deviceId} {
+      function validDevice(data) {
+        return data.keys().hasAll(['device_id', 'brand', 'model', 'android_version',
+            'app_version', 'email', 'first_seen_at', 'last_seen_at'])
+          && data.keys().hasOnly(['device_id', 'brand', 'model', 'android_version',
+            'app_version', 'email', 'first_seen_at', 'last_seen_at'])
+          && data.device_id == deviceId
+          && data.brand is string && data.brand.size() <= 80
+          && data.model is string && data.model.size() <= 120
+          && data.android_version is string && data.android_version.size() <= 80
+          && data.app_version is string && data.app_version.size() <= 40
+          && data.email is string && data.email == request.auth.token.email
+          && data.first_seen_at is timestamp && data.last_seen_at is timestamp;
+      }
+      allow get: if owner(uid) || admin();
+      allow list: if request.query.limit <= 50 && (owner(uid) || admin());
+      allow create: if owner(uid) && active(uid)
+        && validDevice(request.resource.data)
+        && request.resource.data.first_seen_at == request.time
+        && request.resource.data.last_seen_at == request.time;
+      allow update: if owner(uid) && active(uid)
+        && validDevice(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'brand', 'model', 'android_version', 'app_version', 'email', 'last_seen_at'
+        ])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.first_seen_at == resource.data.first_seen_at
+        && request.resource.data.last_seen_at == request.time;
+      allow delete: if false;
+    }
+    match /public_config/notice {
+      allow get: if verified();
+      allow create, update: if admin()
+        && request.resource.data.keys().hasAll(['enabled', 'title', 'body', 'update_version', 'update_url', 'updated_at'])
+        && request.resource.data.keys().hasOnly(['enabled', 'title', 'body', 'update_version', 'update_url', 'updated_at'])
+        && request.resource.data.enabled is bool
+        && request.resource.data.title is string && request.resource.data.title.size() <= 120
+        && request.resource.data.body is string && request.resource.data.body.size() <= 2000
+        && request.resource.data.update_version is string && request.resource.data.update_version.size() <= 40
+        && request.resource.data.update_url is string && request.resource.data.update_url.size() <= 1000
+        && (request.resource.data.update_url == '' || request.resource.data.update_url.matches('https://[^ ].+'))
+        && request.resource.data.updated_at == request.time;
+      allow list, delete: if false;
+    }
+    match /admin_audit/{id} {
+      allow create: if admin()
+        && request.resource.data.keys().hasOnly(['actor_uid', 'target_uid', 'action', 'at'])
+        && request.resource.data.actor_uid == request.auth.uid
+        && request.resource.data.target_uid is string
+        && request.resource.data.action in ['access-update', 'notice-update']
+        && request.resource.data.at == request.time;
+      allow get, list, update, delete: if false;
+    }
+    // Payment requests are created by verified customers, including customers
+    // whose trial has expired. Clients cannot approve or edit a request; an
+    // authenticated server function using the Admin SDK performs review.
+    match /paymentRequests/{requestId} {
+      // resource is null when the request does not exist yet (first submit
+      // reads the doc before creating it), so that case must be allowed too.
+      allow get: if verified()
+        && (resource == null
+            || resource.data.uid == request.auth.uid
+            || admin());
+      allow list: if verified() && request.query.limit <= 50
+        && (resource.data.uid == request.auth.uid || admin());
+      allow create: if verified()
+        && request.resource.data.keys().hasAll([
+          'uid', 'email', 'amount', 'receiptPath', 'status', 'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'uid', 'email', 'amount', 'receiptPath', 'status', 'createdAt',
+          'reviewedBy', 'reviewedAt'
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.amount is int
+        && request.resource.data.amount == 15000
+        && request.resource.data.status == 'pending'
+        && request.resource.data.receiptPath is string
+        && request.resource.data.receiptPath.size() <= 300
+        && request.resource.data.receiptPath
+          == 'paymentReceipts/' + request.auth.uid
+             + '/' + requestId + '/receipt'
+        && request.resource.data.createdAt == request.time
+        && !request.resource.data.keys().hasAny(['reviewedBy', 'reviewedAt']);
+      allow update: if admin()
+        && resource.data.status == 'pending'
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.amount == resource.data.amount
+        && request.resource.data.receiptPath == resource.data.receiptPath
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.status in ['approved', 'rejected']
+        && request.resource.data.reviewedBy == request.auth.uid
+        && request.resource.data.reviewedAt == request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'reviewedBy', 'reviewedAt'
+        ]);
+      allow delete: if false;
+    }
+    match /users/{uid}/backups/latest {
+      // Account owner can recover cloud data even after licence expires.
+      // Admin role alone NEVER grants access to a customer's backup.
+      allow get: if owner(uid);
+      allow create, update: if owner(uid) && active(uid)
+        && request.resource.data.keys().hasAll([
+          'owner_uid', 'schema_version', 'history_records',
+          'archived_summaries', 'merchant_transactions',
+          'merchant_history_snapshots',
+          'last_backup', 'server_backup_time'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'owner_uid', 'schema_version', 'history_records',
+          'archived_summaries', 'merchant_transactions',
+          'merchant_history_snapshots',
+          'last_backup', 'server_backup_time'
+        ])
+        && request.resource.data.owner_uid == uid
+        && request.resource.data.schema_version == 2
+        && request.resource.data.history_records is list
+        && request.resource.data.archived_summaries is list
+        && request.resource.data.merchant_transactions is list
+        && request.resource.data.merchant_history_snapshots is list
+        && request.resource.data.last_backup is string
+        && request.resource.data.server_backup_time == request.time;
+      allow list, delete: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function verified() {
+      return request.auth != null
+        && request.auth.token.email_verified == true;
+    }
+
+    function admin() {
+      return verified()
+        && firestore.get(
+          /databases/(default)/documents/admins/$(request.auth.uid)
+        ).data.enabled == true;
+    }
+
+    function matchesPendingRequest(uid, requestId) {
+      let payment = firestore.get(
+        /databases/(default)/documents/paymentRequests/$(requestId)
+      ).data;
+      return payment.uid == uid
+        && payment.status == 'pending'
+        && payment.receiptPath
+          == 'paymentReceipts/' + uid + '/' + requestId + '/receipt';
+    }
+
+    // Receipts stay private. Customers can upload/read only under their own UID.
+    // Admin access uses the same enabled admins/{uid} documents as Firestore.
+    match /paymentReceipts/{uid}/{requestId}/receipt {
+      allow create: if verified()
+        && request.auth.uid == uid
+        && resource == null
+        && request.resource.size > 0
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)')
+        && matchesPendingRequest(uid, requestId);
+
+      allow get: if verified()
+        && (request.auth.uid == uid || admin());
+      allow list, update, delete: if false;
+    }
+
+    // Deny everything else unless a separate rule is deliberately added.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

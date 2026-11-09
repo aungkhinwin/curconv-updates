@@ -1,0 +1,41 @@
+name: curconv_customer
+description: CurConv customer currency converter with cloud backup and account access.
+publish_to: 'none'
+version: 1.2.2+10
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  firebase_core: 3.6.0
+  firebase_auth: 5.3.1
+  firebase_storage: 12.3.2
+  google_sign_in: 6.2.2
+  cloud_firestore: 5.4.4
+  shared_preferences: ^2.3.2
+  share_plus: ^10.1.4
+  http: ^1.2.0
+  path_provider: ^2.1.0
+  crypto: ^3.0.7
+  workmanager: ^0.10.10
+  image_picker: ^1.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon/app_icon.png
+    - assets/images/cash_transfer.webp
+    - assets/images/profit_graph.webp
+    - assets/images/cash_withdrawal.webp
+  fonts:
+    - family: Pyidaungsu
+      fonts:
+        - asset: assets/fonts/Pyidaungsu-Regular.ttf
