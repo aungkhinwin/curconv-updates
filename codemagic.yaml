@@ -1,0 +1,36 @@
+# DRAFT - NOT YET TESTED.
+# This build will FAIL until the project has an ios/ folder and a
+# GoogleService-Info.plist (see the report). Do not treat it as working.
+workflows:
+  ios-unsigned-ipa:
+    name: CurConv iOS unsigned IPA (for Sideloadly)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Check iOS folder exists
+        script: |
+          if [ ! -d ios ]; then
+            echo "ERROR: ios/ folder missing. Run: flutter create --platforms=ios ."
+            exit 1
+          fi
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios
+          pod install
+      - name: Build unsigned iOS app
+        script: flutter build ios --release --no-codesign
+      - name: Package unsigned IPA
+        script: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -R Runner.app Payload/
+          zip -qr CurConv-unsigned.ipa Payload
+          rm -rf Payload
+    artifacts:
+      - build/ios/iphoneos/*.ipa
