@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "745266527188",
+    "project_id": "curconvbackup-7709c",
+    "storage_bucket": "curconvbackup-7709c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:745266527188:android:d4efb6afeab94992b67441",
+        "android_client_info": {
+          "package_name": "com.example.curconv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "745266527188-ekffg7lh640j76c8qq1jr18ntsfr8hpv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.curconv",
+            "certificate_hash": "52d5552f1ce9ea819fc3f12cafb52a9f8ecc40ba"
+          }
+        },
+        {
+          "client_id": "745266527188-t8ag7tvsqnpu28krs8c0u13svf267738.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcyfcSdCCaOSYYzEI_6I5S8ZRJcnHfDaE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "745266527188-t8ag7tvsqnpu28krs8c0u13svf267738.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "745266527188-j2k9ap85vuhr39afntfgsoc0f43jlbuv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.curconvCustomer"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:745266527188:android:7b53793f6ac6633ab67441",
+        "android_client_info": {
+          "package_name": "com.example.curconvadmin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "745266527188-t8ag7tvsqnpu28krs8c0u13svf267738.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcyfcSdCCaOSYYzEI_6I5S8ZRJcnHfDaE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "745266527188-t8ag7tvsqnpu28krs8c0u13svf267738.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "745266527188-j2k9ap85vuhr39afntfgsoc0f43jlbuv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.curconvCustomer"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,9 +1,1 @@
-{
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "storage": {
-    "rules": "storage.rules"
-  }
-}
+{"firestore":{"rules":"firestore.rules","indexes":"firestore.indexes.json"},"storage":{"rules":"storage.rules"},"flutter":{"platforms":{"android":{"default":{"projectId":"curconvbackup-7709c","appId":"1:745266527188:android:d4efb6afeab94992b67441","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"curconvbackup-7709c","configurations":{"android":"1:745266527188:android:d4efb6afeab94992b67441","ios":"1:745266527188:ios:ea3e68c511d9f6a0b67441"}}}}}}
