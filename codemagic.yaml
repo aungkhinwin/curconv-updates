@@ -23,6 +23,12 @@ workflows:
           test -f ios/Runner/GoogleService-Info.plist
           test -f ios/Podfile
 
+      - name: Sync CocoaPods dependencies
+        script: |
+          cd ios
+          pod install --repo-update
+          cd ..
+
       - name: Build unsigned iOS app (Firebase SPM)
         script: flutter build ios --release --no-codesign
 
