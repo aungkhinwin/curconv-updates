@@ -16,6 +16,17 @@ import 'settings_screen.dart';
 import 'merchant_label_dialog.dart';
 
 const Color _merchantTeal = Color(0xFF00796B);
+const String _shareBackgroundColorKey = 'merchant_share_background_color';
+const List<Color> _shareBackgroundColors = <Color>[
+  Color(0xFFEAF9F2),
+  Color(0xFFFFF6E6),
+  Color(0xFFF5F6F8),
+  Color(0xFFFDF3D7),
+  Color(0xFFE9E7FD),
+  Color(0xFFF9E2FA),
+  Color(0xFFDAF7EA),
+  Color(0xFFE4F6DB),
+];
 
 Widget _merchantFlagBadge(String flag, {double width = 32}) {
   final double flagWidth = width - 4;
@@ -553,9 +564,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
       builder: (BuildContext dialogContext) => AlertDialog(
         title: const Text('မှတ်တမ်းနှင့် စုစုပေါင်း ရှင်းရန်'),
         content: const Text(
-          'ယွမ်၊ ကျပ်၊ လက်ခံရရှိငွေနှင့် လက်ကျန်ငွေတို့၏ စုစုပေါင်းကို 0 လုပ်ရန် '
-          'Txn Hist ထဲရှိ လက်ရှိမှတ်တမ်းအားလုံးကို ဖျက်ပါမည်။ '
-          'အမည်ပေး၍ သိမ်းထားသော Snapshot ဖိုင်များကို မဖျက်ပါ။ ဆက်လုပ်မလား?',
+          'Merchant ရဲ့ အောက်ပါ စာရင်းများရှိ ပမာဏအားလုံးကို ရှင်းလင်းပါမည်။ ဆက်လုပ်မလား?',
         ),
         actions: [
           TextButton(
@@ -565,7 +574,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('မှတ်တမ်းအားလုံး ဖျက်မည်'),
+            child: const Text('အားလုံး ဖျက်ပါမည်'),
           ),
         ],
       ),
@@ -589,7 +598,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
       });
       _showMerchantNotice(
         context,
-        'မှတ်တမ်းများ ဖျက်ပြီး စုစုပေါင်းကို 0 လုပ်ပြီးပါပြီ',
+        'အားလုံးကို ဖျက်ပြီးပါပြီ',
       );
     } catch (error) {
       if (mounted) {
@@ -916,8 +925,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
         _receivedController.clear();
         _activeField = _MerchantField.yuan;
       });
-      _showMerchantNotice(context,
-          'Snapshot စာရင်းနှင့် ပမာဏများကို Merchant သို့ ပြန်ထည့်ပြီးပါပြီ');
+      // Restore succeeds silently; do not show the large pink notice banner.
     } catch (error) {
       if (mounted) {
         _showMerchantNotice(context, 'Snapshot ပြန်ထည့်မရပါ: $error',
@@ -1455,7 +1463,8 @@ class _MerchantScreenState extends State<MerchantScreen> {
               padding: EdgeInsets.zero,
               splashRadius: 24,
               onPressed: _openLedger,
-              icon: const Text('📜', style: TextStyle(fontSize: 24)),
+              icon: const Icon(Icons.receipt_long_rounded,
+                  color: Colors.white, size: 26),
             ),
           ],
         ),
@@ -1574,6 +1583,97 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
   String _ledgerTitle = CurConvSettings.defaultLedgerTitle;
   String _currencyPair = CurConvSettings.defaultCurrencyPair;
   String? _captureReportTitle;
+  int _shareBackgroundColorIndex = 1;
+
+  Color get _shareBackgroundColor =>
+      _shareBackgroundColors[_shareBackgroundColorIndex.clamp(0, 7).toInt()];
+
+  Future<void> _chooseShareBackgroundColor() async {
+    final int? selected = await showDialog<int>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Share ပုံနောက်ခံအရောင်'),
+        content: SizedBox(
+          width: 380,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              for (int row = 0; row < 4; row++)
+                Row(
+                  children: <Widget>[
+                    Expanded(child: _shareColorChoice(dialogContext, row, const <String>['Pale Mint Green', 'Warm Cream / Beige', 'Light Gray / Off-White', 'Soft Yellow'][row], const <String>['#EAF9F2', '#FFF6E6', '#F5F6F8', '#FDF3D7'][row])),
+                    const SizedBox(width: 8),
+                    Expanded(child: _shareColorChoice(dialogContext, row + 4, const <String>['Lavender', 'Soft Pink', 'Mint Green', 'Pale Green'][row], const <String>['#E9E7FD', '#F9E2FA', '#DAF7EA', '#E4F6DB'][row])),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected == null || selected == _shareBackgroundColorIndex) return;
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String> updated = <String>[];
+    for (final Map<String, dynamic> snapshot in _snapshots) {
+      final Map<String, dynamic> copy = Map<String, dynamic>.from(snapshot);
+      // Force old saved snapshots to be recaptured with the newly selected background.
+      copy['imageData'] = '';
+      updated.add(jsonEncode(copy));
+    }
+    await prefs.setStringList(_snapshotsKey, updated);
+    await prefs.setInt(_shareBackgroundColorKey, selected);
+    if (!mounted) return;
+    setState(() {
+      _shareBackgroundColorIndex = selected;
+      _snapshots = updated
+          .map((String raw) =>
+              Map<String, dynamic>.from(jsonDecode(raw) as Map))
+          .toList();
+    });
+  }
+
+  Widget _shareColorChoice(
+    BuildContext dialogContext,
+    int index,
+    String label,
+    String hex,
+  ) {
+    final Color color = _shareBackgroundColors[index];
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => Navigator.of(dialogContext).pop(index),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(7),
+                border: Border.all(color: Colors.black26),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+                  Text(hex, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                ],
+              ),
+            ),
+            if (_shareBackgroundColorIndex == index)
+              const Icon(Icons.check_circle, color: _merchantTeal, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
 
   static double _numberFrom(dynamic value) {
     if (value is num) return value.toDouble();
@@ -1694,6 +1794,8 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
           ) ??
           CurConvSettings.defaultThousandSeparatorEnabled;
       _roundPrecision = prefs.getInt(CurConvSettings.roundPrecisionDigitsKey) ?? CurConvSettings.defaultRoundPrecisionDigits;
+      _shareBackgroundColorIndex =
+          (prefs.getInt(_shareBackgroundColorKey) ?? 1).clamp(0, 7).toInt();
       _isCapturingSnapshot = snapshotToCapture != null &&
           (snapshotToCapture['imageData']?.toString().isNotEmpty != true);
       final String? savedYuanLabel =
@@ -1991,6 +2093,10 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
     double? totalRemittanceOverride,
     bool? deleteModeOverride,
     void Function(Map<String, dynamic>, String)? onDeleteCell,
+    String yuanAnchor = '',
+    String rateAnchor = '',
+    String kyatAnchor = '',
+    String cashAnchor = '',
   }) {
     final List<Map<String, dynamic>> reportRecords = recordsOverride ?? _records;
     final String reportPair = currencyPairOverride ?? _currencyPair;
@@ -2021,18 +2127,86 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
         ? conversionRecords.length
         : cashRecords.length;
 
+    // Pick the widest value using the same typography as the rendered cell.
+    // Its measured width becomes a centered anchor slot; every shorter value
+    // is right-aligned inside that slot so all right edges line up.
+    double ledgerValueWidth(String value) {
+      final TextSpan span = value.endsWith(' 元')
+          ? TextSpan(
+              children: [
+                TextSpan(
+                  text: value.substring(0, value.length - 2),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const TextSpan(
+                  text: ' 元',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            )
+          : TextSpan(
+              text: value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+              ),
+            );
+      final TextPainter painter = TextPainter(
+        text: span,
+        textDirection: Directionality.of(context),
+        maxLines: 1,
+      )..layout();
+      return painter.width;
+    }
+
+    String widestLedgerValue(Iterable<String> values) {
+      String widest = '';
+      double widestWidth = -1;
+      for (final String value in values) {
+        if (value.isEmpty) continue;
+        final double width = ledgerValueWidth(value);
+        if (width > widestWidth) {
+          widest = value;
+          widestWidth = width;
+        }
+      }
+      return widest;
+    }
+
+    final String yuanAnchor = widestLedgerValue(conversionRecords.map((record) {
+      if (record['deletedYuan'] == true) return '';
+      final String pair = record['currencyPair']?.toString() ?? reportPair;
+      return CurConvSettings.currencyAmount(
+        _formatAmount(_numberFrom(record['yuan'])), pair);
+    }));
+    final String rateAnchor = widestLedgerValue(conversionRecords.map((record) =>
+        record['deletedRate'] == true
+            ? ''
+            : _formatAmount(_numberFrom(record['rate']))));
+    final String kyatAnchor = widestLedgerValue(conversionRecords.map((record) =>
+        record['deletedKyat'] == true
+            ? ''
+            : _formatAmount(_numberFrom(record['kyat']))));
+    final String cashAnchor = widestLedgerValue(cashRecords.map((record) =>
+        _formatAmount(_numberFrom(record['amount']))));
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.black, width: 4),
+        color: _shareBackgroundColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
             width: double.infinity,
-            color: Colors.white,
+            color: _shareBackgroundColor,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -2124,7 +2298,8 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                 ),
                 Container(
                   width: double.infinity,
-                  color: Theme.of(context).colorScheme.surface,
+                  // Keep the selected Share background continuous below the summary.
+                  color: _shareBackgroundColor,
                   padding: const EdgeInsets.fromLTRB(8, 10, 8, 12),
                   child: Column(
                     children: [
@@ -2155,6 +2330,10 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                                 : null,
                             deleteModeOverride: reportDeleteMode,
                             onDeleteCell: onDeleteCell,
+                            yuanAnchor: yuanAnchor,
+                            rateAnchor: rateAnchor,
+                            kyatAnchor: kyatAnchor,
+                            cashAnchor: cashAnchor,
                           ),
                     ],
                   ),
@@ -2199,9 +2378,13 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
     bool empty = false,
     bool deleteMode = false,
     VoidCallback? onDelete,
+    bool compactYuanUnit = false,
+    String? alignmentAnchor,
   }) {
     final bool canDelete = deleteMode && onDelete != null;
     final BorderRadius borderRadius = BorderRadius.circular(5);
+    final Color effectiveTextColor = empty ? Colors.black38 : textColor;
+
     return Expanded(
       flex: flex,
       child: Padding(
@@ -2216,7 +2399,6 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                 borderRadius: borderRadius,
                 onTap: canDelete ? onDelete : null,
                 child: Container(
-                  alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 3,
                     vertical: 5,
@@ -2230,17 +2412,131 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                           )
                         : null,
                   ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      value,
-                      maxLines: 1,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: empty ? Colors.black38 : textColor,
-                      ),
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final TextSpan textSpan = value.endsWith(' 元')
+                          ? TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: value.substring(0, value.length - 2),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: effectiveTextColor,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: ' 元',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: effectiveTextColor,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : TextSpan(
+                              text: value,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: effectiveTextColor,
+                              ),
+                            );
+
+                      final TextPainter textPainter = TextPainter(
+                        text: textSpan,
+                        textDirection: Directionality.of(context),
+                        maxLines: 1,
+                      )..layout();
+
+                      final String anchor = alignmentAnchor?.isNotEmpty == true
+                          ? alignmentAnchor!
+                          : value;
+                      final TextSpan anchorSpan = anchor.endsWith(' 元')
+                          ? TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: anchor.substring(0, anchor.length - 2),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const TextSpan(
+                                  text: ' 元',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : TextSpan(
+                              text: anchor,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            );
+                      final TextPainter anchorPainter = TextPainter(
+                        text: anchorSpan,
+                        textDirection: Directionality.of(context),
+                        maxLines: 1,
+                      )..layout();
+                      final double anchorWidth = anchorPainter.width
+                          .clamp(0.0, constraints.maxWidth)
+                          .toDouble();
+
+                      // Keep the widest amount centered in the full cell.
+                      // Smaller amounts use a centered anchor-width slot and
+                      // align to that slot's right edge.
+                      final Widget valueWidget = value.endsWith(' 元')
+                          ? Text.rich(
+                              textSpan,
+                              maxLines: 1,
+                              softWrap: false,
+                              textAlign: TextAlign.center,
+                            )
+                          : Text(
+                              value,
+                              maxLines: 1,
+                              softWrap: false,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: effectiveTextColor,
+                              ),
+                            );
+
+                      if (value == anchor) {
+                        return Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.center,
+                            child: valueWidget,
+                          ),
+                        );
+                      }
+
+                      return Center(
+                        child: SizedBox(
+                          width: anchorWidth,
+                          child: Padding(
+                            // Keep smaller values slightly inset from the
+                            // anchor's right edge; the maximum value itself
+                            // remains centered and is not moved.
+                            padding: const EdgeInsets.only(right: 6),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: valueWidget,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -2249,19 +2545,12 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
               Positioned(
                 top: 1,
                 right: 1,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 15,
-                    height: 15,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFD32F2F),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.close_rounded,
-                      size: 10,
-                      color: Colors.white,
-                    ),
+                child: GestureDetector(
+                  onTap: onDelete,
+                  child: const Icon(
+                    Icons.cancel,
+                    color: Color(0xFFD32F2F),
+                    size: 15,
                   ),
                 ),
               ),
@@ -2276,6 +2565,10 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
     required Map<String, dynamic>? cashRecord,
     bool? deleteModeOverride,
     void Function(Map<String, dynamic>, String)? onDeleteCell,
+    String yuanAnchor = '',
+    String rateAnchor = '',
+    String kyatAnchor = '',
+    String cashAnchor = '',
   }) {
     final bool activeDeleteMode = deleteModeOverride ?? _deleteMode;
     VoidCallback? deleteAction(Map<String, dynamic>? record, String label) {
@@ -2321,6 +2614,8 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
       flex: 10,
       empty: !isConversion || yuanDeleted,
       deleteMode: activeDeleteMode,
+      compactYuanUnit: true,
+      alignmentAnchor: yuanAnchor,
       onDelete: yuanDeleted
           ? null
           : deleteAction(conversion, 'ယွမ်၊ ရောင်းဈေး၊ ကျပ်ငွေ'),
@@ -2331,6 +2626,7 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
       textColor: const Color(0xFF7A1C46),
       flex: 8,
       empty: !isConversion || rateDeleted,
+      alignmentAnchor: rateAnchor,
       deleteMode: activeDeleteMode,
       onDelete: rateDeleted
           ? null
@@ -2342,6 +2638,7 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
       textColor: Colors.white,
       flex: 11,
       empty: !isConversion || kyatDeleted,
+      alignmentAnchor: kyatAnchor,
       deleteMode: activeDeleteMode,
       onDelete: kyatDeleted
           ? null
@@ -2349,7 +2646,7 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
     );
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 9),
+      margin: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
           if (activeDeleteMode &&
@@ -2385,6 +2682,7 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                                 textColor: Colors.white,
                                 flex: 10,
                                 empty: yuanDeleted,
+                                alignmentAnchor: yuanAnchor,
                               ),
                               _buildLedgerValueCell(
                                 rate,
@@ -2392,6 +2690,7 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                                 textColor: const Color(0xFF7A1C46),
                                 flex: 8,
                                 empty: rateDeleted,
+                                alignmentAnchor: rateAnchor,
                               ),
                               _buildLedgerValueCell(
                                 kyat,
@@ -2399,6 +2698,7 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                                 textColor: Colors.white,
                                 flex: 11,
                                 empty: kyatDeleted,
+                                alignmentAnchor: kyatAnchor,
                               ),
                             ],
                           ),
@@ -2443,6 +2743,7 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                 : const Color(0xFF3E3420),
             flex: 11,
             empty: !isReceived && !isRemittance,
+            alignmentAnchor: cashAnchor,
             deleteMode: activeDeleteMode && (isReceived || isRemittance),
             onDelete: deleteAction(cashRecord, '📥'),
           ),
@@ -2473,11 +2774,10 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
       if (mounted) setState(() => _snapshots = updated);
     }
 
-    final String? imageData = snapshot['imageData']?.toString();
-    if (imageData != null && imageData.isNotEmpty) {
-      await _showSavedSnapshot(snapshot);
-      return;
-    }
+    // Always rebuild the saved preview from its records using the current
+    // export layout. Older snapshots may contain a PNG with the previous
+    // border thickness, so reusing imageData would keep showing the old border.
+    snapshot['imageData'] = '';
 
     final Object? rawRecords = snapshot['records'];
     final List<Map<String, dynamic>> snapshotRecords = rawRecords is List
@@ -2676,6 +2976,14 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
             ];
             try {
               final String? imageData = snapshot['imageData']?.toString();
+              // Define the popover origin before both share branches so the
+              // text-only fallback can use it too.
+              final RenderBox? shareBox =
+                  context.findRenderObject() as RenderBox?;
+              final Rect sharePositionOrigin =
+                  shareBox != null && shareBox.hasSize
+                      ? shareBox.localToGlobal(Offset.zero) & shareBox.size
+                      : const Rect.fromLTWH(0, 0, 1, 1);
               if (imageData != null && imageData.isNotEmpty) {
                 final Uint8List bytes = base64Decode(imageData);
                 final File imageFile = File(
@@ -2689,9 +2997,14 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                   ],
                   text: name,
                   subject: name,
+                  sharePositionOrigin: sharePositionOrigin,
                 );
               } else {
-                await Share.share(lines.join('\n'), subject: name);
+                await Share.share(
+                  lines.join('\n'),
+                  subject: name,
+                  sharePositionOrigin: sharePositionOrigin,
+                );
               }
             } catch (error) {
               _showMerchantNotice(context, 'Snapshot မျှဝေမရပါ: $error',
@@ -3023,10 +3336,20 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
         backgroundColor: _merchantTeal,
         foregroundColor: Colors.white,
         centerTitle: true,
-        // Back Up and Restore sit either side of the title with equal gaps.
-        title: Row(
+        // Match Merchant AppBar spacing: 48dp icon + 16dp gap on each side.
+        leadingWidth: 120,
+        leading: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            IconButton(
+              tooltip: 'Back',
+              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+              padding: EdgeInsets.zero,
+              splashRadius: 24,
+              icon: const Icon(Icons.arrow_back_rounded, size: 28),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            const SizedBox(width: 16),
             IconButton(
               tooltip: 'Back Up',
               constraints: const BoxConstraints.tightFor(width: 48, height: 48),
@@ -3042,29 +3365,39 @@ class _MerchantLedgerScreenState extends State<MerchantLedgerScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 40),
-            const Text(
-              'Money Txn',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(width: 40),
-            IconButton(
-              tooltip: 'Restore',
-              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
-              padding: EdgeInsets.zero,
-              splashRadius: 24,
-              icon: _cloudArrowGlyph(
-                cloud: const Color(0xFF168FE5),
-                arrow: Icons.arrow_downward_rounded,
-              ),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const BackupScreen(autoAction: 'restore'),
-                ),
-              ),
-            ),
           ],
         ),
+        titleSpacing: 0,
+        title: const Text(
+          'Money Txn',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+        ),
+        actions: <Widget>[
+          IconButton(
+            tooltip: 'Restore',
+            constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+            padding: EdgeInsets.zero,
+            splashRadius: 24,
+            icon: _cloudArrowGlyph(
+              cloud: const Color(0xFF168FE5),
+              arrow: Icons.arrow_downward_rounded,
+            ),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const BackupScreen(autoAction: 'restore'),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          IconButton(
+            tooltip: 'Share ပုံနောက်ခံအရောင်ရွေးရန်',
+            constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+            padding: EdgeInsets.zero,
+            splashRadius: 24,
+            onPressed: _chooseShareBackgroundColor,
+            icon: const _SharePaletteIcon(size: 20),
+          ),
+        ],
       ),
       body: _isCapturingSnapshot
           ? Stack(
@@ -3469,3 +3802,85 @@ Widget _cloudArrowGlyph({required Color cloud, required IconData arrow}) =>
       ),
     );
 
+
+
+/// Palette/photo icon drawn entirely with Flutter canvas (no image asset).
+class _SharePaletteIcon extends StatelessWidget {
+  const _SharePaletteIcon({this.size = 24});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: size,
+        height: size,
+        child: CustomPaint(painter: _SharePalettePainter()),
+      );
+}
+
+class _SharePalettePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double scale = size.width / 32;
+    canvas.scale(scale);
+    final Paint white = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final Paint navy = Paint()..color = const Color(0xFF12395B);
+    final Paint fillWhite = Paint()..color = Colors.white;
+
+    final RRect frame = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(1.5, 3, 29, 26),
+      const Radius.circular(3),
+    );
+    canvas.drawRRect(frame, white);
+
+    final Path mountain = Path()
+      ..moveTo(5, 24)
+      ..lineTo(11, 15)
+      ..quadraticBezierTo(12.5, 13, 14, 15)
+      ..lineTo(17, 19)
+      ..lineTo(20, 12)
+      ..quadraticBezierTo(21, 10, 22.5, 12)
+      ..lineTo(28, 24)
+      ..close();
+    canvas.drawPath(mountain, navy);
+    canvas.drawPath(mountain, white);
+
+    canvas.drawCircle(const Offset(10, 10), 2.1, fillWhite);
+    canvas.drawCircle(const Offset(10, 10), 2.1, navy);
+
+    final Path palette = Path()
+      ..moveTo(18, 5)
+      ..cubicTo(23, 1, 30, 4, 30, 10)
+      ..cubicTo(30, 15, 26, 18, 22, 17)
+      ..cubicTo(20, 16, 20, 13, 18, 13)
+      ..cubicTo(16, 13, 14, 11, 15, 9)
+      ..cubicTo(15.5, 7, 16.5, 6, 18, 5)
+      ..close();
+    canvas.drawPath(palette, navy);
+    canvas.drawPath(palette, white);
+
+    final List<Offset> dots = <Offset>[
+      const Offset(20, 7),
+      const Offset(25, 7),
+      const Offset(27, 11),
+      const Offset(21, 11),
+    ];
+    final List<Color> colors = <Color>[
+      const Color(0xFFFFEB00),
+      const Color(0xFF20E6A0),
+      const Color(0xFFFF4081),
+      const Color(0xFF1685F8),
+    ];
+    for (int i = 0; i < dots.length; i++) {
+      canvas.drawCircle(dots[i], 1.35, Paint()..color = colors[i]);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SharePalettePainter oldDelegate) => false;
+}

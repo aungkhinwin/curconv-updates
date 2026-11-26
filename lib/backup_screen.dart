@@ -209,7 +209,7 @@ class _BackupScreenState extends State<BackupScreen> {
       final BackupData backup = validateAccountBackup(data, account.uid);
       final bool confirmed = await _confirm(
         'Cloud မှ ပြန်ယူရန်',
-        '${account.email} ရဲ့ Cloud မှတ်တမ်း ${backup.recordCount} ခုနဲ့ ဒီဖုန်းရှိ History၊ ရက်ချုပ်နဲ့ Merchant စာရင်းတွေကို အစားထိုးပါမည်။ ပေါင်းမည်မဟုတ်ပါ။ ဆက်လုပ်မလား?',
+        '${account.email} ရဲ့ Cloud မှတ်တမ်း ${backup.recordCount} ခုနဲ့ ဒီဖုန်းရှိ History၊ ရက်ချုပ်၊ Merchant၊ Debt နဲ့ Repayment စာရင်းတွေကို အစားထိုးပါမည်။ ပေါင်းမည်မဟုတ်ပါ။ ဆက်လုပ်မလား?',
         'အစားထိုးပြန်ယူမည်',
       );
       if (!mounted || !confirmed) return;
@@ -349,7 +349,7 @@ class _BackupScreenState extends State<BackupScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'ဖုန်းထဲရှိ History၊ ရက်ချုပ်နဲ့ Merchant စာရင်း ၃ မျိုးကိုသာ သိမ်းပါမည်။ Login ဝင်ရုံနဲ့ အလိုအလျောက် Backup/Restore မလုပ်ပါ။',
+                              'ဖုန်းထဲရှိ History၊ ရက်ချုပ်၊ Merchant၊ Debt နဲ့ Repayment စာရင်းများကို သိမ်းပါမည်။ Login ဝင်ရုံနဲ့ အလိုအလျောက် Backup/Restore မလုပ်ပါ။',
                               style: TextStyle(
                                 color: Color(0xFF24415A),
                                 fontSize: 14,

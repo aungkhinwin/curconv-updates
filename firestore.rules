@@ -176,13 +176,13 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll([
           'owner_uid', 'schema_version', 'history_records',
           'archived_summaries', 'merchant_transactions',
-          'merchant_history_snapshots',
+          'merchant_history_snapshots', 'debt_records',
           'last_backup', 'server_backup_time'
         ])
         && request.resource.data.keys().hasOnly([
           'owner_uid', 'schema_version', 'history_records',
           'archived_summaries', 'merchant_transactions',
-          'merchant_history_snapshots',
+          'merchant_history_snapshots', 'debt_records',
           'last_backup', 'server_backup_time'
         ])
         && request.resource.data.owner_uid == uid
@@ -191,6 +191,7 @@ service cloud.firestore {
         && request.resource.data.archived_summaries is list
         && request.resource.data.merchant_transactions is list
         && request.resource.data.merchant_history_snapshots is list
+        && request.resource.data.debt_records is list
         && request.resource.data.last_backup is string
         && request.resource.data.server_backup_time == request.time;
       allow list, delete: if false;

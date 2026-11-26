@@ -372,11 +372,15 @@ class CurconvShopIcon extends StatelessWidget {
   const CurconvShopIcon({
     super.key,
     this.size = 28,
+    this.width,
+    this.height,
     this.color = Colors.white,
     this.strokeWidth = 2.0,
   });
 
   final double size;
+  final double? width;
+  final double? height;
   final Color color;
   final double strokeWidth;
 
@@ -582,26 +586,42 @@ class CurconvSaveInfoIcon extends StatelessWidget {
     this.size = 28,
     this.color = Colors.white,
     this.strokeWidth = 2.0,
+    this.coverColor = const Color(0xFFF7B6CC),
+    this.showProfile = true,
   });
 
   final double size;
   final Color color;
   final double strokeWidth;
+  final Color coverColor;
+  final bool showProfile;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size.square(size),
-      painter: _CurconvSaveInfoIconPainter(color: color, strokeWidth: strokeWidth),
+      painter: _CurconvSaveInfoIconPainter(
+        color: color,
+        strokeWidth: strokeWidth,
+        coverColor: coverColor,
+        showProfile: showProfile,
+      ),
     );
   }
 }
 
 class _CurconvSaveInfoIconPainter extends CustomPainter {
-  _CurconvSaveInfoIconPainter({required this.color, required this.strokeWidth});
+  _CurconvSaveInfoIconPainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.coverColor,
+    required this.showProfile,
+  });
 
   final Color color;
   final double strokeWidth;
+  final Color coverColor;
+  final bool showProfile;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -613,7 +633,7 @@ class _CurconvSaveInfoIconPainter extends CustomPainter {
     canvas.scale(s);
 
     const Color white = Color(0xFFFFFFFF);
-    const Color pinkCover = Color(0xFFF7B6CC);
+    final Color pinkCover = coverColor;
     const Color profileLight = Color(0xFF79C5F2);
     const Color profileDark = Color(0xFF08A9E8);
     const Color binder = Color(0xFF77869B);
@@ -675,61 +695,65 @@ class _CurconvSaveInfoIconPainter extends CustomPainter {
       );
     }
 
-    // 5. Profile circle: white ring, light blue fill
-    const Offset centre = Offset(640, 528);
-    canvas.drawCircle(centre, 232, Paint()..color = white);
-    canvas.drawCircle(centre, 205, Paint()..color = profileLight);
-
-    // Person: head with white ring, shoulders clipped by the circle
-    canvas.save();
-    canvas.clipPath(Path()..addOval(Rect.fromCircle(center: centre, radius: 205)));
-    canvas.drawCircle(const Offset(640, 455), 88, Paint()..color = white);
-    canvas.drawCircle(const Offset(640, 455), 60, Paint()..color = profileDark);
-    canvas.drawPath(
-      Path()
-        ..moveTo(470, 760)
-        ..lineTo(470, 690)
-        ..quadraticBezierTo(470, 580, 640, 580)
-        ..quadraticBezierTo(810, 580, 810, 690)
-        ..lineTo(810, 760)
-        ..close(),
-      Paint()..color = white,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(492, 760)
-        ..lineTo(492, 690)
-        ..quadraticBezierTo(492, 605, 640, 605)
-        ..quadraticBezierTo(788, 605, 788, 690)
-        ..lineTo(788, 760)
-        ..close(),
-      Paint()..color = profileDark,
-    );
-    canvas.restore();
-
-    // 6. Two white text lines under the profile
-    final Paint line = Paint()..color = white;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTRB(500, 825, 772, 862),
-        const Radius.circular(18),
-      ),
-      line,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTRB(445, 918, 826, 955),
-        const Radius.circular(18),
-      ),
-      line,
-    );
-
+    if (showProfile) {
+      // 5. Profile circle: white ring, light blue fill
+      const Offset centre = Offset(640, 528);
+      canvas.drawCircle(centre, 232, Paint()..color = white);
+      canvas.drawCircle(centre, 205, Paint()..color = profileLight);
+  
+      // Person: head with white ring, shoulders clipped by the circle
+      canvas.save();
+      canvas.clipPath(Path()..addOval(Rect.fromCircle(center: centre, radius: 205)));
+      canvas.drawCircle(const Offset(640, 455), 88, Paint()..color = white);
+      canvas.drawCircle(const Offset(640, 455), 60, Paint()..color = profileDark);
+      canvas.drawPath(
+        Path()
+          ..moveTo(470, 760)
+          ..lineTo(470, 690)
+          ..quadraticBezierTo(470, 580, 640, 580)
+          ..quadraticBezierTo(810, 580, 810, 690)
+          ..lineTo(810, 760)
+          ..close(),
+        Paint()..color = white,
+      );
+      canvas.drawPath(
+        Path()
+          ..moveTo(492, 760)
+          ..lineTo(492, 690)
+          ..quadraticBezierTo(492, 605, 640, 605)
+          ..quadraticBezierTo(788, 605, 788, 690)
+          ..lineTo(788, 760)
+          ..close(),
+        Paint()..color = profileDark,
+      );
+      canvas.restore();
+  
+      // 6. Two white text lines under the profile
+      final Paint line = Paint()..color = white;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          const Rect.fromLTRB(500, 825, 772, 862),
+          const Radius.circular(18),
+        ),
+        line,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          const Rect.fromLTRB(445, 918, 826, 955),
+          const Radius.circular(18),
+        ),
+        line,
+      );
+    }
     canvas.restore();
   }
 
   @override
   bool shouldRepaint(covariant _CurconvSaveInfoIconPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
+      oldDelegate.color != color ||
+      oldDelegate.strokeWidth != strokeWidth ||
+      oldDelegate.coverColor != coverColor ||
+      oldDelegate.showProfile != showProfile;
 }
 
 /// History icon: user inside a circle with a clock badge (outline style).

@@ -50,11 +50,6 @@ class CustomerAccessGateState extends State<CustomerAccessGate>
 
   @override
   void initState() {
-    // Safety net: never leave the loading screen stuck. After 15 seconds the
-    // login/payment panel (with its retry button) is shown instead.
-    Future<void>.delayed(const Duration(seconds: 15), () {
-      if (mounted && _booting) setState(() => _booting = false);
-    });
     super.initState();
     _auth = widget.auth ?? FirebaseCloudAuth();
     _backend = widget.backend;
@@ -151,7 +146,8 @@ class CustomerAccessGateState extends State<CustomerAccessGate>
           await FirebaseFirestore.instance
               .collection('admins')
               .doc(uid)
-              .get(const GetOptions(source: Source.server));
+              .get(const GetOptions(source: Source.server))
+              .timeout(const Duration(seconds: 8));
       if (!mounted || generation != _generation || _account?.uid != uid) return;
       if (adminSnapshot.data()?['enabled'] == true) {
         _adminAuthorized = true;
@@ -281,7 +277,9 @@ class CustomerAccessGateState extends State<CustomerAccessGate>
     final int generation = _generation;
     setState(() => _checking = true);
     try {
-      final result = await _backend.checkOnline(account);
+      final result = await _backend
+          .checkOnline(account)
+          .timeout(const Duration(seconds: 15));
       if (!mounted || generation != _generation) return;
       _scheduleDeadline(result.lease);
       setState(() {
@@ -302,22 +300,36 @@ class CustomerAccessGateState extends State<CustomerAccessGate>
                 : 'ဆာဗာခွင့်ပြုချက်မရပါ။ Firebase Rules ကို စစ်ပါ။',
           );
         }
-      } else if (error is FirebaseException &&
-          <String>{
-            'unavailable',
-            'deadline-exceeded',
-            'network-request-failed',
-          }.contains(error.code)) {
-        final lease = await _backend.checkOffline(account.uid);
+      } else if (error is TimeoutException ||
+          (error is FirebaseException &&
+              <String>{
+                'unavailable',
+                'deadline-exceeded',
+                'network-request-failed',
+              }.contains(error.code))) {
+        // A slow/unreachable server is not an access denial. Try the
+        // previously verified offline lease before showing a blocking screen.
+        OfflineLease? lease;
+        try {
+          lease = await _backend
+              .checkOffline(account.uid)
+              .timeout(const Duration(seconds: 4));
+        } catch (_) {
+          lease = null;
+        }
         if (!mounted || generation != _generation) return;
-        if (lease == null) {
-          _deny('အင်တာနက်ချိတ်ပြီး အသုံးပြုခွင့် ပြန်စစ်ရန်လိုပါသည်။');
-        } else {
+        if (lease != null) {
           _scheduleDeadline(lease);
           setState(() {
             _lease = lease;
             _allowed = true;
+            _message =
+                'ဆာဗာတုံ့ပြန်မှု နောက်ကျနေပါသည်။ သိမ်းထားသော အသုံးပြုခွင့်ဖြင့် ဆက်လက်အသုံးပြုနိုင်ပါသည်။';
           });
+        } else {
+          _deny(
+            'ဆာဗာတုံ့ပြန်မှု နောက်ကျနေပါသည်။ အင်တာနက်စစ်ပြီး “ပြန်စစ်မည်” ကို ထပ်နှိပ်ပါ။',
+          );
         }
       } else {
         _deny('အသုံးပြုခွင့် မစစ်နိုင်ပါ: $error');
@@ -387,24 +399,15 @@ class CustomerAccessGateState extends State<CustomerAccessGate>
         child: widget.child,
       );
     }
-    // Paid or trial users: show a short loading screen while the server check
-    // runs, instead of flashing the login/payment panel on every start.
+    // Show the real Home screen immediately for a signed-in, verified user.
+    // Keep actions temporarily disabled until the background access check has
+    // completed; Firestore rules remain the final enforcement layer. Do not
+    // display a loading page, spinner, or access-check banner over Home.
     if (_booting && _account != null && _account!.verified) {
-      return const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              CircularProgressIndicator(),
-              SizedBox(height: 12),
-              Text('အသုံးပြုခွင့် စစ်ဆေးနေပါသည်။'),
-            ],
-          ),
-        ),
-      );
+      return AbsorbPointer(child: widget.child);
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('CurConv အသုံးပြုခွင့်')),
+      appBar: AppBar(title: const Text('CurLedger အသုံးပြုခွင့်')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),

@@ -25,6 +25,216 @@ import 'cloud_backup_repository.dart';
 import 'curconv_3d.dart';
 import 'firebase_options.dart';
 
+
+class _DebtIcon extends StatelessWidget {
+  const _DebtIcon({
+    required this.color,
+    this.size = 27,
+    this.showCircle = true,
+    this.circleSize = 25,
+    this.circleOffset = Offset.zero,
+    this.circleFillColor,
+  });
+
+  final Color color;
+  final double size;
+  final bool showCircle;
+  final double circleSize;
+  final Offset circleOffset;
+  final Color? circleFillColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (showCircle && circleFillColor != null)
+            Transform.translate(
+              offset: circleOffset,
+              child: Icon(
+                Icons.circle,
+                color: circleFillColor,
+                size: circleSize * 0.80,
+              ),
+            ),
+          if (showCircle)
+            Transform.translate(
+              offset: circleOffset,
+              child: Icon(Icons.circle_outlined, color: color, size: circleSize),
+            ),
+          Positioned(
+            top: size * 0.13 + 3,
+            child: Text(
+              r'$',
+              style: TextStyle(
+                color: color,
+                fontSize: size * 0.39 - 3,
+                height: 0.9,
+                fontWeight: FontWeight.w900,
+                shadows: [
+                  Shadow(
+                    color: color,
+                    offset: const Offset(0.55, 0),
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: (size * 0.16 + 1.5 + size * 0.13 + 1.5) / 2 - 0.35,
+            right: (size * 0.16 + 1.5 + size * 0.13 + 1.5) / 2 - 0.35,
+            bottom: size * 0.17 + 4.0,
+            height: size * 0.34 - 2.3,
+            child: Transform.translate(
+              offset: const Offset(-1.1, 0),
+              child: CustomPaint(
+                painter: _HandHoldingDollarPainter(color: color),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+class _HandHoldingDollarPainter extends CustomPainter {
+  const _HandHoldingDollarPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.clipRect(
+      Rect.fromLTWH(3, 0, (size.width - 3).clamp(0, size.width), size.height),
+    );
+
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    // Side-view open palm: wrist on the left, palm facing upward,
+    // with the fingers extending to the right as in fa-hand-holding-dollar.
+    final path = Path()
+      ..moveTo(size.width * 0.04, size.height * 0.43)
+      ..lineTo(size.width * 0.20, size.height * 0.43)
+      ..cubicTo(
+        size.width * 0.28, size.height * 0.43,
+        size.width * 0.32, size.height * 0.20,
+        size.width * 0.45, size.height * 0.20,
+      )
+      ..lineTo(size.width * 0.78, size.height * 0.20)
+      ..cubicTo(
+        size.width * 0.90, size.height * 0.20,
+        size.width * 0.91, size.height * 0.44,
+        size.width * 0.78, size.height * 0.44,
+      )
+      ..lineTo(size.width * 0.58, size.height * 0.44)
+      ..cubicTo(
+        size.width * 0.51, size.height * 0.44,
+        size.width * 0.50, size.height * 0.61,
+        size.width * 0.61, size.height * 0.61,
+      )
+      ..lineTo(size.width * 0.84, size.height * 0.61)
+      ..cubicTo(
+        size.width * 0.90, size.height * 0.61,
+        size.width * 0.93, size.height * 0.57,
+        size.width * 0.97, size.height * 0.53,
+      )
+      ..lineTo(size.width * 0.99, size.height * 0.51)
+      ..cubicTo(
+        size.width * 1.04, size.height * 0.47,
+        size.width * 1.08, size.height * 0.55,
+        size.width * 1.02, size.height * 0.62,
+      )
+      ..lineTo(size.width * 0.84, size.height * 0.88)
+      ..cubicTo(
+        size.width * 0.79, size.height * 0.96,
+        size.width * 0.70, size.height,
+        size.width * 0.59, size.height,
+      )
+      ..lineTo(size.width * 0.12, size.height)
+      ..cubicTo(
+        size.width * 0.05, size.height,
+        size.width * 0.02, size.height * 0.95,
+        size.width * 0.02, size.height * 0.87,
+      )
+      ..lineTo(size.width * 0.02, size.height * 0.52)
+      ..cubicTo(
+        size.width * 0.02, size.height * 0.46,
+        size.width * 0.02, size.height * 0.43,
+        size.width * 0.04, size.height * 0.43,
+      )
+      ..close();
+
+    canvas.drawPath(path, paint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _HandHoldingDollarPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+class _SendPlanePainter extends CustomPainter {
+  const _SendPlanePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint fill = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    final Path plane = Path()
+      ..moveTo(size.width * 0.06, size.height * 0.43)
+      ..quadraticBezierTo(
+        size.width * 0.01,
+        size.height * 0.39,
+        size.width * 0.10,
+        size.height * 0.35,
+      )
+      ..lineTo(size.width * 0.91, size.height * 0.04)
+      ..quadraticBezierTo(
+        size.width * 0.99,
+        size.height * 0.01,
+        size.width * 0.96,
+        size.height * 0.12,
+      )
+      ..lineTo(size.width * 0.67, size.height * 0.91)
+      ..quadraticBezierTo(
+        size.width * 0.64,
+        size.height * 0.99,
+        size.width * 0.58,
+        size.height * 0.91,
+      )
+      ..lineTo(size.width * 0.43, size.height * 0.62)
+      ..lineTo(size.width * 0.18, size.height * 0.54)
+      ..close();
+    canvas.drawPath(plane, fill);
+
+    final Paint seam = Paint()
+      ..color = color.withOpacity(0.72)
+      ..strokeWidth = size.width * 0.055
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    final Path fold = Path()
+      ..moveTo(size.width * 0.43, size.height * 0.62)
+      ..lineTo(size.width * 0.70, size.height * 0.36);
+    canvas.drawPath(fold, seam);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SendPlanePainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
 int _topNoticeSequence = 0;
 OverlayEntry? _topNoticeEntry;
 
@@ -259,11 +469,14 @@ Future<void> main() async {
   unawaited(loadFontScale());
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (Platform.isAndroid) {
-    try {
-      await Workmanager().initialize(autoBackupCallbackDispatcher);
-    } catch (_) {
-      await _saveAutoBackupStatus('schedule_failed');
-    }
+    // Background task initialization must not delay the first Home frame.
+    unawaited(() async {
+      try {
+        await Workmanager().initialize(autoBackupCallbackDispatcher);
+      } catch (_) {
+        await _saveAutoBackupStatus('schedule_failed');
+      }
+    }());
   }
   // Auto-archive today's daily summary to Saved Info once it is 23:30 or later.
   unawaited(autoArchiveTodayIfDue());
@@ -509,7 +722,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'CurConv',
+      title: 'CurLedger',
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF00796B),
@@ -615,6 +828,7 @@ class _CurrencyConverterHomeScreenState
   int? _edgeSwipePointer;
   Offset? _edgeSwipeOrigin;
   bool _pendingIsA1 = true;
+  bool _pendingIsDebt = false;
   String _selectedCode = '';
   bool _letterKeyboardEnabled = CurConvSettings.defaultLetterKeyboardEnabled;
   String _currencyPair = CurConvSettings.defaultCurrencyPair;
@@ -629,6 +843,8 @@ class _CurrencyConverterHomeScreenState
   final LayerLink _a2SendLayerLink = LayerLink();
   final GlobalKey _a1SendTargetKey = GlobalKey();
   final GlobalKey _a2SendTargetKey = GlobalKey();
+  final LayerLink _b1DebtSendLayerLink = LayerLink();
+  final GlobalKey _b1DebtSendTargetKey = GlobalKey();
   OverlayEntry? _codeKeyboardOverlay;
 
   String _a1ResultText = '';
@@ -1107,12 +1323,18 @@ class _CurrencyConverterHomeScreenState
     });
   }
 
-  void _openCodeKeyboard(bool isA1) {
+  void _openCodeKeyboard(
+    bool isA1, {
+    LayerLink? targetLayerLink,
+    GlobalKey? targetKey,
+  }) {
     final double yuan = double.tryParse(_yuanToKyatController.text) ?? 0;
     final double yuanRate = double.tryParse(_yuanRateController.text) ?? 0;
     final double effectiveRate = isA1 ? yuanRate : yuanRate - 1;
 
-    if (yuan <= 0 || effectiveRate <= 0) {
+    final bool isDebtSend = targetKey == _b1DebtSendTargetKey;
+    final double debtKyats = double.tryParse(_kyatToYuanController.text) ?? 0;
+    if (isDebtSend ? (debtKyats <= 0 || yuanRate <= 0) : (yuan <= 0 || effectiveRate <= 0)) {
       _showTopNotice(
         context,
         'ပမာဏနဲ့ ${CurConvSettings.currencyName(_currencyPair)} ဈေးကို အရင်ဖြည့်ပါ',
@@ -1122,7 +1344,11 @@ class _CurrencyConverterHomeScreenState
     }
 
     if (!_letterKeyboardEnabled) {
-      _sendDirectToHistory(isA1, code: '');
+      if (isDebtSend) {
+        _sendDirectToDebt(code: '');
+      } else {
+        _sendDirectToHistory(isA1, code: '');
+      }
       return;
     }
 
@@ -1130,11 +1356,14 @@ class _CurrencyConverterHomeScreenState
     _codeKeyboardOverlay = null;
     setState(() {
       _pendingIsA1 = isA1;
+      _pendingIsDebt = isDebtSend;
       _selectedCode = '';
     });
 
-    final LayerLink sendLink = isA1 ? _a1SendLayerLink : _a2SendLayerLink;
-    final GlobalKey sendTargetKey = isA1 ? _a1SendTargetKey : _a2SendTargetKey;
+    final LayerLink sendLink = targetLayerLink ??
+        (isA1 ? _a1SendLayerLink : _a2SendLayerLink);
+    final GlobalKey sendTargetKey = targetKey ??
+        (isA1 ? _a1SendTargetKey : _a2SendTargetKey);
     final RenderBox? sendTargetBox =
         sendTargetKey.currentContext?.findRenderObject() as RenderBox?;
     final double sendTargetLeft =
@@ -1205,8 +1434,37 @@ class _CurrencyConverterHomeScreenState
     }
 
     final bool isA1 = _pendingIsA1;
+    final bool isDebt = _pendingIsDebt;
     _closeCodeKeyboard();
-    await _sendDirectToHistory(isA1, code: nextCode);
+    if (isDebt) {
+      await _sendDirectToDebt(code: nextCode);
+    } else {
+      await _sendDirectToHistory(isA1, code: nextCode);
+    }
+  }
+
+  Future<void> _sendDirectToDebt({required String code}) async {
+    final double kyats = double.tryParse(_kyatToYuanController.text) ?? 0;
+    final double rate = double.tryParse(_yuanRateController.text) ?? 0;
+    if (kyats <= 0 || rate <= 0) return;
+    final double yuan = _toCurrency(kyats, rate).roundToDouble();
+    final DateTime now = DateTime.now();
+    final String date = '${now.day.toString().padLeft(2, '0')}/'
+        '${now.month.toString().padLeft(2, '0')}/${now.year}';
+    final Map<String, dynamic> record = <String, dynamic>{
+      'date': date,
+      'kyats': kyats.round(),
+      'yuan': yuan,
+      'rate': rate,
+      'code': code,
+      'currencyPair': _currencyPair,
+    };
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String> records = prefs.getStringList('debt_records') ?? <String>[];
+    records.insert(0, jsonEncode(record));
+    await prefs.setStringList('debt_records', records);
+    if (!mounted) return;
+    _showTopNotice(context, 'Debt စာရင်းသို့ ပို့ပြီးပါပြီ။');
   }
 
   Future<void> _sendDirectToHistory(bool isA1, {required String code}) async {
@@ -1340,57 +1598,102 @@ class _CurrencyConverterHomeScreenState
     Key? clearKey,
     IconData clearIcon = Icons.cancel,
     Color clearIconColor = Colors.grey,
+    double floatingLabelTop = -6,
   }) {
     final bool isSelected = _activeController == controller;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isSelected
-            ? (isDark ? const Color(0xFF18302D) : const Color(0xFFE8F5E9))
-            : (isDark ? const Color(0xFF2B3332) : Colors.grey.shade100),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isSelected
-              ? const Color(0xFF00796B)
-              : (isDark ? Colors.white38 : Colors.black38),
-          width: isSelected ? 2 : 1,
-        ),
-      ),
-      child: TextField(
-        key: fieldKey,
-        controller: controller,
-        showCursor: true,
-        keyboardType: TextInputType.none,
-        onTap: () => setState(() => _activeController = controller),
-        onChanged: (_) => _calculate(),
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        decoration: InputDecoration(
-          labelText: labelText,
-          floatingLabelBehavior: FloatingLabelBehavior.auto,
-          labelStyle: TextStyle(
+    final Color fieldFillColor = isSelected
+        ? (isDark ? const Color(0xFF18302D) : const Color(0xFFE8F5E9))
+        : (isDark ? const Color(0xFF2B3332) : Colors.grey.shade100);
+    final bool showFloatingLabel = isSelected || controller.text.isNotEmpty;
+
+    return SizedBox(
+      height: 50, // Keep the requested 50dp height.
+      child: Container(
+        decoration: BoxDecoration(
+          color: fieldFillColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
             color: isSelected
                 ? const Color(0xFF00796B)
-                : (isDark ? Colors.white70 : Colors.grey.shade700),
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+                : (isDark ? Colors.white38 : Colors.black38),
+            width: isSelected ? 2 : 1,
           ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 8,
-          ),
-          suffixIcon: onClear != null && controller.text.isNotEmpty
-              ? IconButton(
-                  key: clearKey,
-                  icon: Icon(
-                    clearIcon,
-                    size: 18,
-                    color: clearIconColor,
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: TextField(
+                key: fieldKey,
+                controller: controller,
+                showCursor: true,
+                textAlignVertical: TextAlignVertical.center,
+                cursorHeight: 20,
+                keyboardType: TextInputType.none,
+                onTap: () => setState(() => _activeController = controller),
+                onChanged: (_) => _calculate(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+                decoration: InputDecoration(
+                  // The resting label stays inside the field. When selected,
+                  // the separate overlay below places it at the upper-left edge.
+                  hintText: showFloatingLabel ? null : labelText,
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.grey.shade700,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
-                  onPressed: onClear,
-                )
-              : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  // Reserve the clear-button slot even before text is entered.
+                  // This keeps the first two currency fields' editable area and
+                  // cursor baseline stable when the clear icon appears.
+                  suffixIcon: onClear != null
+                      ? (controller.text.isNotEmpty
+                          ? IconButton(
+                              key: clearKey,
+                              icon: Icon(
+                                clearIcon,
+                                size: 18,
+                                color: clearIconColor,
+                              ),
+                              onPressed: onClear,
+                            )
+                          : const SizedBox(width: 48, height: 48))
+                      : null,
+                ),
+              ),
+            ),
+            if (showFloatingLabel)
+              Positioned(
+                left: 14,
+                top: floatingLabelTop,
+                child: IgnorePointer(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    color: fieldFillColor,
+                    child: Text(
+                      labelText,
+                      style: TextStyle(
+                        color: isSelected
+                            ? const Color(0xFF00796B)
+                            : (isDark ? Colors.white70 : Colors.grey.shade700),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -1523,7 +1826,7 @@ class _CurrencyConverterHomeScreenState
         ),
         titleSpacing: 0,
         title: const Text(
-          'CurConv',
+          'CurLedger',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -1533,9 +1836,13 @@ class _CurrencyConverterHomeScreenState
         backgroundColor: const Color(0xFF00796B),
         actions: [
           IconButton(
-            tooltip: 'Save',
-            icon: const Icon(Icons.save_outlined, color: Colors.white),
-            onPressed: _saveRates,
+            tooltip: 'Debt',
+            icon: const _DebtIcon(color: Colors.white, size: 27),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const DebtScreen()),
+              );
+            },
           ),
           const SizedBox(width: 16),
           IconButton(
@@ -1621,22 +1928,106 @@ class _CurrencyConverterHomeScreenState
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
+                  Transform.translate(
+                    offset: const Offset(0, 3),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: Transform.translate(
+                            offset: const Offset(0, -3),
+                            child: _buildTextField(
+                              controller: _yuanRateController,
+                              labelText: 'ရောင်းဈေး',
+                              floatingLabelTop: -5,
+                            ),
+                          ),
+                      ),
+                      const SizedBox(width: 8),
                       Expanded(
-                        child: _buildTextField(
-                          controller: _yuanRateController,
-                          labelText: 'ရောင်းဈေး',
+                        flex: 3,
+                        child: SizedBox(
+                          height: 45,
+                          child: Tooltip(
+                            message: 'Save',
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _saveRates,
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFFFFF0D9),
+                                        Color(0xFFFFE0B7),
+                                        Color(0xFFFFD29A),
+                                      ],
+                                    ),
+                                    border: Border.all(
+                                      color: const Color(0xFFE6A04B),
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x668B4B1E),
+                                        offset: Offset(0, 4),
+                                        blurRadius: 7,
+                                        spreadRadius: 0,
+                                      ),
+                                      BoxShadow(
+                                        color: Color(0xCCFFFFFF),
+                                        offset: Offset(0, -1),
+                                        blurRadius: 2,
+                                        spreadRadius: 0,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(
+                                        Icons.save_outlined,
+                                        size: 20,
+                                        color: Color(0xFF4A2F1B),
+                                      ),
+                                      SizedBox(height: 1),
+                                      Text(
+                                        'ငွေဈေးသိမ်းဆည်း',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Color(0xFF4A2F1B),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: _buildTextField(
-                          controller: _traderRateController,
-                          labelText: 'ကုန်သည်ဈေး',
+                        flex: 5,
+                        child: Transform.translate(
+                          offset: const Offset(0, -3),
+                          child: _buildTextField(
+                            controller: _traderRateController,
+                            labelText: 'ကုန်သည်ဈေး',
+                            floatingLabelTop: -5,
+                          ),
                         ),
                       ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -1663,7 +2054,15 @@ class _CurrencyConverterHomeScreenState
                               ? "KPay ➙ 0 Ks (0)\n${CurConvSettings.currencyAmount('0', _currencyPair)}"
                               : _b1ResultText,
                           bgColor: const Color(0xFF004D40),
-                          isSendAvailable: false,
+                          isSendAvailable: true,
+                          sendAtEnd: true,
+                          sendLayerLink: _b1DebtSendLayerLink,
+                          sendTargetKey: _b1DebtSendTargetKey,
+                          onSend: () => _openCodeKeyboard(
+                            false,
+                            targetLayerLink: _b1DebtSendLayerLink,
+                            targetKey: _b1DebtSendTargetKey,
+                          ),
                           onCopy: () => _copyToClipboard(
                             _b1ResultText,
                             _kyatToYuanController,
@@ -1770,15 +2169,15 @@ class _CurrencyConverterHomeScreenState
     final String heading = '${_swipeDirectionLabel()} ($rateText)';
     if (yuanToKyat) {
       final double kyats = _mmkMultiply
-          ? (amount * rate).roundToDouble()
+          ? (amount * rate)
           : _toKyat(amount, rate);
       if (!kyats.isFinite) return '';
       return '$heading\n'
-          '${CurConvSettings.currencyAmount(_formatDisplayAmount(amount), _currencyPair)} ➙ ${_formatDisplayAmount(kyats.round())} Ks';
+          '${CurConvSettings.currencyAmount(_formatDisplayAmount(amount), _currencyPair)} ➙ ${_formatDisplayAmount(kyats)} Ks';
     }
     // Excel ROUND(x, 0) for the yuan result card.
     final double yuan = _mmkMultiply
-        ? (amount / rate).roundToDouble()
+        ? (amount / rate)
         : _toCurrency(amount, rate);
     if (!yuan.isFinite) return '';
     return '$heading\n'
@@ -1920,96 +2319,115 @@ class _CurrencyConverterHomeScreenState
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
               child: Column(
                 children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: _buildTextField(
-                          controller: _mmkYuanController,
-                          labelText:
-                              '${CurConvSettings.currencyName(_currencyPair).replaceAll('တရုတ်', '').trim()} မှ ကျပ်',
-                          fieldKey: const ValueKey<String>('swipe-yuan-input'),
-                          clearKey: const ValueKey<String>(
-                            'swipe-yuan-input-clear',
+                  Transform.translate(
+                    offset: const Offset(0, 13),
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _mmkYuanController,
+                            labelText:
+                                '${CurConvSettings.currencyName(_currencyPair).replaceAll('တရုတ်', '').trim()} မှ ကျပ်',
+                            fieldKey: const ValueKey<String>('swipe-yuan-input'),
+                            clearKey: const ValueKey<String>(
+                              'swipe-yuan-input-clear',
+                            ),
+                            onClear: () {
+                              _mmkYuanController.clear();
+                              setState(
+                                () => _activeController = _mmkYuanController,
+                              );
+                              _calculate();
+                            },
                           ),
-                          onClear: () {
-                            _mmkYuanController.clear();
-                            setState(
-                              () => _activeController = _mmkYuanController,
-                            );
-                            _calculate();
-                          },
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildTextField(
-                          controller: _mmkKyatController,
-                          labelText:
-                              'ကျပ် မှ ${CurConvSettings.currencyName(_currencyPair).replaceAll('တရုတ်', '').trim()}',
-                          fieldKey: const ValueKey<String>('swipe-kyat-input'),
-                          clearKey: const ValueKey<String>(
-                            'swipe-kyat-input-clear',
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _mmkKyatController,
+                            labelText:
+                                'ကျပ် မှ ${CurConvSettings.currencyName(_currencyPair).replaceAll('တရုတ်', '').trim()}',
+                            fieldKey: const ValueKey<String>('swipe-kyat-input'),
+                            clearKey: const ValueKey<String>(
+                              'swipe-kyat-input-clear',
+                            ),
+                            onClear: () {
+                              _mmkKyatController.clear();
+                              setState(
+                                () => _activeController = _mmkKyatController,
+                              );
+                              _calculate();
+                            },
                           ),
-                          onClear: () {
-                            _mmkKyatController.clear();
-                            setState(
-                              () => _activeController = _mmkKyatController,
-                            );
-                            _calculate();
-                          },
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        flex: 1,
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: _buildMmkModeButton(
-                            symbol: '÷',
-                            active: !_mmkMultiply,
-                            onTap: () => _setMmkMode(false),
-                          ),
+                  Transform.translate(
+                    offset: const Offset(0, 30),
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              flex: 1,
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: _buildMmkModeButton(
+                                  symbol: '÷',
+                                  active: !_mmkMultiply,
+                                  onTap: () => _setMmkMode(false),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Transform.translate(
+                                offset: const Offset(0, -1),
+                                child: _buildTextField(
+                                  controller: _mmkToCnyRateController,
+                                  labelText:
+                                      '${CurConvSettings.currencyName(_currencyPair).replaceAll('တရုတ်', '').trim()} ရောင်းဈေး',
+                                  floatingLabelTop: -5,
+                                  fieldKey: const ValueKey<String>(
+                                    'swipe-rate-input',
+                                  ),
+                                  clearKey: const ValueKey<String>(
+                                    'swipe-rate-input-clear',
+                                  ),
+                                  clearIcon: Icons.save_outlined,
+                                  clearIconColor: const Color(0xFF00796B),
+                                  onClear: () => _saveSwipeRate(),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: _buildMmkModeButton(
+                                  symbol: '×',
+                                  active: _mmkMultiply,
+                                  onTap: () => _setMmkMode(true),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: _buildTextField(
-                          controller: _mmkToCnyRateController,
-                          labelText:
-                              '${CurConvSettings.currencyName(_currencyPair).replaceAll('တရုတ်', '').trim()} ရောင်းဈေး',
-                          fieldKey: const ValueKey<String>('swipe-rate-input'),
-                          clearKey: const ValueKey<String>(
-                            'swipe-rate-input-clear',
-                          ),
-                          clearIcon: Icons.save_outlined,
-                          clearIconColor: const Color(0xFF00796B),
-                          onClear: () => _saveSwipeRate(),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: _buildSwipeCopyCard(yuanToKyat: true),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildSwipeCopyCard(yuanToKyat: false),
+                            ),
+                          ],
                         ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: _buildMmkModeButton(
-                            symbol: '×',
-                            active: _mmkMultiply,
-                            onTap: () => _setMmkMode(true),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: <Widget>[
-                      Expanded(child: _buildSwipeCopyCard(yuanToKyat: true)),
-                      const SizedBox(width: 8),
-                      Expanded(child: _buildSwipeCopyCard(yuanToKyat: false)),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -2074,6 +2492,8 @@ class _CurrencyConverterHomeScreenState
     required Color bgColor,
     required bool isSendAvailable,
     LayerLink? sendLayerLink,
+    GlobalKey? sendTargetKey,
+    bool sendAtEnd = false,
     VoidCallback? onSend,
     required VoidCallback onCopy,
   }) {
@@ -2100,10 +2520,28 @@ class _CurrencyConverterHomeScreenState
           if (isSendAvailable)
             Row(
               children: [
+                if (sendAtEnd) ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: onCopy,
+                      icon: const Icon(Icons.copy_rounded, size: 13),
+                      label: const Text('Copy', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: bgColor,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
                 CompositedTransformTarget(
-                  key: sendLayerLink == _a1SendLayerLink
-                      ? _a1SendTargetKey
-                      : _a2SendTargetKey,
+                  key: sendTargetKey ??
+                      (sendLayerLink == _a1SendLayerLink
+                          ? _a1SendTargetKey
+                          : _a2SendTargetKey),
                   link: sendLayerLink ?? LayerLink(),
                   child: SizedBox(
                     width: 42,
@@ -2118,19 +2556,15 @@ class _CurrencyConverterHomeScreenState
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: Text(
-                        '➤',
-                        style: TextStyle(
-                          color: bgColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: CustomPaint(
+                        size: const Size(22, 22),
+                        painter: _SendPlanePainter(color: bgColor),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
-                Expanded(
+                if (!sendAtEnd) const SizedBox(width: 6),
+                if (!sendAtEnd) Expanded(
                   child: ElevatedButton.icon(
                     onPressed: onCopy,
                     icon: const Icon(Icons.copy_rounded, size: 13),
@@ -2816,9 +3250,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                           const Spacer(),
                           IconButton(
-                            icon: const Text(
-                              '📌',
-                              style: TextStyle(fontSize: 20),
+                            icon: const Icon(
+                              Icons.bookmark,
+                              size: 25,
+                              color: Color(0xFF00897B),
                             ),
                             onPressed: () => _archiveDailySummary(
                               dateKey,
@@ -2874,11 +3309,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
+                                  Transform.translate(
+                                    offset: const Offset(0, 2),
+                                    child: Row(
                                     children: [
-                                      const Text(
-                                        '📤',
-                                        style: TextStyle(fontSize: 14),
+                                      Image.asset(
+                                        'assets/images/cash_transfer.webp',
+                                        width: 30,
+                                        height: 14,
+                                        fit: BoxFit.contain,
                                       ),
                                       const SizedBox(width: 4),
                                       Expanded(
@@ -2892,13 +3331,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         ),
                                       ),
                                     ],
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
-                                  Row(
+                                  Transform.translate(
+                                    offset: const Offset(0, 1),
+                                    child: Row(
                                     children: [
-                                      const Text(
-                                        '📥',
-                                        style: TextStyle(fontSize: 14),
+                                      Image.asset(
+                                        'assets/images/cash_withdrawal.webp',
+                                        width: 30,
+                                        height: 14,
+                                        fit: BoxFit.contain,
                                       ),
                                       const SizedBox(width: 4),
                                       Expanded(
@@ -2912,6 +3356,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         ),
                                       ),
                                     ],
+                                    ),
                                   ),
                                 ],
                               ),
@@ -2929,6 +3374,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         child: Text(
                                           '${CurConvSettings.currencyAmount(_formatDisplayAmount(yuanVal), recordPair)} '
                                           '($rateText)',
+                                          textAlign: TextAlign.left,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 13,
@@ -2941,9 +3387,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   const SizedBox(height: 8),
                                   Row(
                                     children: [
-                                      const Text(
-                                        '⏰',
-                                        style: TextStyle(fontSize: 14),
+                                      const Icon(
+                                        Icons.alarm,
+                                        color: Color(0xFFFF0000),
+                                        size: 14,
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
@@ -2969,9 +3416,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      const Text(
-                                        '🪙',
-                                        style: TextStyle(fontSize: 13),
+                                      Image.asset(
+                                        'assets/images/profit_graph.webp',
+                                        width: 18,
+                                        height: 18,
+                                        fit: BoxFit.contain,
                                       ),
                                       const SizedBox(width: 2),
                                       Text(
@@ -3045,6 +3494,431 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
     );
   }
+}
+
+class DebtScreen extends StatefulWidget {
+  const DebtScreen({super.key});
+
+  @override
+  State<DebtScreen> createState() => _DebtScreenState();
+}
+
+class _DebtScreenState extends State<DebtScreen> {
+  List<Map<String, dynamic>> _records = <Map<String, dynamic>>[];
+  bool _showRepayment = false;
+  bool _searchOpen = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecords();
+  }
+
+  Future<void> _loadRecords() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<Map<String, dynamic>> loaded = <Map<String, dynamic>>[];
+    for (final String raw in prefs.getStringList('debt_records') ?? <String>[]) {
+      try {
+        loaded.add(Map<String, dynamic>.from(jsonDecode(raw) as Map));
+      } catch (_) {}
+    }
+    if (mounted) setState(() => _records = loaded);
+  }
+
+  Future<void> _saveRecords() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'debt_records',
+      _records.map((Map<String, dynamic> item) => jsonEncode(item)).toList(),
+    );
+  }
+
+  String _formatDebtNumber(dynamic value) {
+    if (value == null) return '0';
+    final String text = value.toString();
+    // Remove only an unnecessary decimal-zero suffix (for example, 100.0 -> 100).
+    return text.replaceFirst(RegExp(r'\.0+$'), '');
+  }
+
+  Future<void> _toggleRepayment(int index) async {
+    setState(() {
+      final bool isRepaid = _records[index]['isRepaid'] == true;
+      _records[index]['isRepaid'] = !isRepaid;
+    });
+    await _saveRecords();
+  }
+
+  Future<void> _deleteDebtRecord(int index) async {
+    if (index < 0 || index >= _records.length) return;
+    setState(() => _records.removeAt(index));
+    await _saveRecords();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<int> visibleIndexes = <int>[];
+    for (int i = 0; i < _records.length; i++) {
+      final String code = (_records[i]['code'] ?? '').toString().toUpperCase();
+      final String query = _searchController.text.trim().toUpperCase();
+      if ((_records[i]['isRepaid'] == true) == _showRepayment &&
+          (query.isEmpty || code.contains(query))) {
+        visibleIndexes.add(i);
+      }
+    }
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F5F7),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF00796B),
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        title: _searchOpen
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                maxLength: 2,
+                textCapitalization: TextCapitalization.characters,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]')),
+                  LengthLimitingTextInputFormatter(2),
+                ],
+                style: const TextStyle(color: Colors.white, fontSize: 18),
+                cursorColor: Colors.white,
+                decoration: InputDecoration(
+                  hintText: 'A-Z နှစ်လုံး ရှာရန်',
+                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.75)),
+                  counterText: '',
+                  border: InputBorder.none,
+                  suffixIcon: IconButton(
+                    tooltip: 'ရှာဖွေမှု ပိတ်ရန်',
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () {
+                      setState(() {
+                        _searchOpen = false;
+                        _searchController.clear();
+                      });
+                    },
+                  ),
+                ),
+                onChanged: (_) => setState(() {}),
+              )
+            : Text(
+                _showRepayment ? 'Repayment' : 'Debt',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+        actions: <Widget>[
+          IconButton(
+            tooltip: 'A-Z Code ရှာရန်',
+            onPressed: () {
+              setState(() {
+                _searchOpen = true;
+              });
+            },
+            icon: const Icon(Icons.search, color: Colors.white),
+          ),
+          IconButton(
+            tooltip: _showRepayment ? 'Debt' : 'Repayment',
+            onPressed: () => setState(() => _showRepayment = !_showRepayment),
+            icon: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                CurconvSaveInfoIcon(
+                  size: 24,
+                  color: Colors.white,
+                  coverColor: Color(0xFFE53935),
+                  showProfile: false,
+                ),
+                // Reuse the actual Debt icon, but omit its surrounding circle
+                // so only the hand-and-dollar mark sits in the book's center.
+                _DebtIcon(
+                  color: Colors.white,
+                  size: 18,
+                  showCircle: true,
+                  circleSize: 13,
+                  circleOffset: const Offset(0.5, -0.5),
+                  circleFillColor: _showRepayment
+                      ? const Color(0xFFFFBA28)
+                      : const Color(0xFF0000FF),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(11, 28, 11, 20),
+        children: <Widget>[
+          const SizedBox(height: 18),
+          if (visibleIndexes.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 80),
+              child: Center(
+                child: Text(
+                  _showRepayment ? 'Repayment စာရင်း မရှိသေးပါ။' : 'Debt စာရင်း မရှိသေးပါ။',
+                  style: TextStyle(
+                    color: _showRepayment ? Colors.black : const Color(0xFFFF0000),
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            )
+          else
+            ...visibleIndexes.asMap().entries.map((MapEntry<int, int> entry) {
+              final int position = entry.key;
+              final int index = entry.value;
+              final Map<String, dynamic> item = _records[index];
+              final String recordDate = (item['date'] ?? 'ရက်စွဲမရှိ').toString();
+              final String previousDate = position > 0
+                  ? (_records[visibleIndexes[position - 1]]['date'] ?? 'ရက်စွဲမရှိ').toString()
+                  : '';
+              final String code = (item['code'] ?? '').toString();
+              final String pair = (item['currencyPair'] ?? 'cny_mmk').toString();
+              final String yuanLabel = pair == 'myr_mmk'
+                    ? 'RM'
+                    : pair == 'thb_mmk'
+                        ? '฿'
+                        : '¥';
+              final Color recordTextColor =
+                  _showRepayment ? Colors.black : const Color(0xFFFF0000);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  if (position == 0 || recordDate != previousDate)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 14),
+                      child: Text(
+                        recordDate,
+                        style: TextStyle(
+                          color: _showRepayment ? Colors.black : const Color(0xFFFF0000),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF8F1),
+                  border: Border.all(
+                    color: const Color(0xFF328D7D),
+                    width: 1.8,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Image.asset(
+                      'assets/images/cash_transfer.webp',
+                      width: 30,
+                      height: 14,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      flex: 5,
+                      child: Text(
+                        '${_formatDebtNumber(item['kyats'])} Ks',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: recordTextColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    SizedBox(
+                      width: 21,
+                      height: 14,
+                      child: Center(
+                        child: SizedBox(
+                          width: pair == 'myr_mmk' ? 21 : 19,
+                          height: pair == 'myr_mmk' ? 14 : 12,
+                          child: CustomPaint(
+                            painter: _DebtFlagPainter(pair: pair),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      flex: 6,
+                      child: Text(
+                        '$yuanLabel ${_formatDebtNumber(item['yuan'])} (${_formatDebtNumber(item['rate'])})',
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: recordTextColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      code,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: recordTextColor,
+                      ),
+                      maxLines: 1,
+                    ),
+                    const SizedBox(width: 5),
+                    IconButton(
+                      tooltip: _showRepayment ? 'Debt သို့ ပြန်ရွှေ့ရန်' : 'Repayment သို့ ရွှေ့ရန်',
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      padding: EdgeInsets.zero,
+                      onPressed: () => _toggleRepayment(index),
+                      icon: Container(
+                        width: 17.5,
+                        height: 17.5,
+                        decoration: BoxDecoration(
+                          color: _showRepayment
+                              ? const Color(0xFFFFBA28)
+                              : Colors.transparent,
+                          border: Border.all(
+                            color: _showRepayment
+                                ? const Color(0xFFFFBA28)
+                                : const Color(0xFF0000FF),
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        alignment: Alignment.center,
+                        child: _showRepayment
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 13,
+                                weight: 900,
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onDoubleTap: () => _deleteDebtRecord(index),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.delete_outline_rounded,
+                          color: Color(0xFFFF1744),
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                ),
+                ],
+              );
+            }),
+        ],
+      ),
+    );
+  }
+}
+
+class _DebtFlagPainter extends CustomPainter {
+  const _DebtFlagPainter({required this.pair});
+
+  final String pair;
+
+  bool get isMalaysia => pair == 'myr_mmk';
+  bool get isThailand => pair == 'thb_mmk';
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Rect rect = Offset.zero & size;
+    final Paint paint = Paint()..style = PaintingStyle.fill;
+    canvas.save();
+    canvas.clipRRect(RRect.fromRectAndRadius(rect, const Radius.circular(2)));
+
+    if (isMalaysia) {
+      paint.color = Colors.white;
+      canvas.drawRect(rect, paint);
+      final double stripeHeight = size.height / 8;
+      for (int i = 0; i < 8; i++) {
+        paint.color = i.isEven ? const Color(0xFFCC2027) : Colors.white;
+        canvas.drawRect(
+          Rect.fromLTWH(0, i * stripeHeight, size.width, stripeHeight + 0.2),
+          paint,
+        );
+      }
+      paint.color = const Color(0xFF003399);
+      canvas.drawRect(Rect.fromLTWH(0, 0, size.width * 0.52, size.height * 0.58), paint);
+      paint.color = const Color(0xFFFFD700);
+      canvas.drawCircle(Offset(size.width * 0.22, size.height * 0.28), size.height * 0.19, paint);
+      paint.color = const Color(0xFF003399);
+      canvas.drawCircle(Offset(size.width * 0.27, size.height * 0.24), size.height * 0.16, paint);
+    } else if (isThailand) {
+      const List<Color> stripes = <Color>[
+        Color(0xFFA51931),
+        Colors.white,
+        Color(0xFF2D2A4A),
+        Colors.white,
+        Color(0xFFA51931),
+      ];
+      const List<double> weights = <double>[1, 1, 2, 1, 1];
+      final double unit = size.height / 6;
+      double top = 0;
+      for (int i = 0; i < stripes.length; i++) {
+        final double bandHeight = unit * weights[i];
+        paint.color = stripes[i];
+        canvas.drawRect(
+          Rect.fromLTWH(0, top, size.width, bandHeight),
+          paint,
+        );
+        top += bandHeight;
+      }
+    } else {
+      paint.color = const Color(0xFFDE2910);
+      canvas.drawRect(rect, paint);
+      paint.color = const Color(0xFFFFDE00);
+      _drawStar(canvas, Offset(size.width * 0.23, size.height * 0.30), size.height * 0.25, paint);
+      _drawStar(canvas, Offset(size.width * 0.48, size.height * 0.15), size.height * 0.085, paint);
+      _drawStar(canvas, Offset(size.width * 0.57, size.height * 0.31), size.height * 0.085, paint);
+      _drawStar(canvas, Offset(size.width * 0.57, size.height * 0.49), size.height * 0.085, paint);
+      _drawStar(canvas, Offset(size.width * 0.48, size.height * 0.64), size.height * 0.085, paint);
+    }
+    canvas.restore();
+  }
+
+  void _drawStar(Canvas canvas, Offset center, double radius, Paint paint) {
+    final Path path = Path();
+    for (int i = 0; i < 10; i++) {
+      final double r = i.isEven ? radius : radius * 0.42;
+      final double angle = -math.pi / 2 + i * math.pi / 5;
+      final Offset point = Offset(
+        center.dx + math.cos(angle) * r,
+        center.dy + math.sin(angle) * r,
+      );
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DebtFlagPainter oldDelegate) =>
+      oldDelegate.pair != pair;
 }
 
 class ArchiveScreen extends StatefulWidget {
@@ -3865,9 +4739,35 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                                           ),
                                         ],
                                       ),
-                                      Text(
-                                        '📤 ထွက်ငွေ: ${_formatSummaryNumber(customerKs)} Ks | '
-                                        '📥 ဝင်ငွေ: ${_formatSummaryNumber(traderKs)} Ks',
+                                      Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            WidgetSpan(
+                                              alignment: PlaceholderAlignment.middle,
+                                              child: Image.asset(
+                                                'assets/images/cash_transfer.webp',
+                                                width: 14,
+                                                height: 14,
+                                                fit: BoxFit.contain,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: ' ထွက်ငွေ: ${_formatSummaryNumber(customerKs)} Ks | ',
+                                            ),
+                                            WidgetSpan(
+                                              alignment: PlaceholderAlignment.middle,
+                                              child: Image.asset(
+                                                'assets/images/cash_withdrawal.webp',
+                                                width: 14,
+                                                height: 14,
+                                                fit: BoxFit.contain,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: ' ဝင်ငွေ: ${_formatSummaryNumber(traderKs)} Ks',
+                                            ),
+                                          ],
+                                        ),
                                         style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey,
@@ -4613,9 +5513,29 @@ class ArchivedDayDetailsScreen extends StatelessWidget {
       return Row(
         children: [
           if (icon.isNotEmpty)
-            CurConvSettings.currencyPairIds.contains(icon)
-                ? _currencyFlagBadge(icon, width: iconFontSize * 1.5)
-                : Text(icon, style: TextStyle(fontSize: iconFontSize)),
+            icon == 'alarm_clock'
+                ? const Icon(
+                    Icons.alarm,
+                    color: Color(0xFFFF0000),
+                    size: 14,
+                  )
+                : icon == 'cash_transfer'
+                ? Image.asset(
+                    'assets/images/cash_transfer.webp',
+                    width: 26,
+                    height: 26,
+                    fit: BoxFit.contain,
+                  )
+                : icon == 'cash_withdrawal'
+                    ? Image.asset(
+                        'assets/images/cash_withdrawal.webp',
+                        width: 26,
+                        height: 26,
+                        fit: BoxFit.contain,
+                      )
+                    : CurConvSettings.currencyPairIds.contains(icon)
+                        ? _currencyFlagBadge(icon, width: iconFontSize * 1.5)
+                        : Text(icon, style: TextStyle(fontSize: iconFontSize)),
           if (icon.isNotEmpty) const SizedBox(width: 3),
           Expanded(
             child: Text(
@@ -4839,16 +5759,22 @@ class ArchivedDayDetailsScreen extends StatelessWidget {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          infoCell(
-                                            '📤',
-                                            '${formatSummaryNumber(recordCustomer)} Ks',
-                                            fontWeight: FontWeight.bold,
+                                          Transform.translate(
+                                            offset: const Offset(0, 3),
+                                            child: infoCell(
+                                              'cash_transfer',
+                                              '${formatSummaryNumber(recordCustomer)} Ks',
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                           const SizedBox(height: 4),
-                                          infoCell(
-                                            '📥',
-                                            '${formatSummaryNumber(recordTrader)} Ks',
-                                            fontWeight: FontWeight.bold,
+                                          Transform.translate(
+                                            offset: const Offset(0, -4),
+                                            child: infoCell(
+                                              'cash_withdrawal',
+                                              '${formatSummaryNumber(recordTrader)} Ks',
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -4867,7 +5793,7 @@ class ArchivedDayDetailsScreen extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 4),
                                           infoCell(
-                                            '⏰',
+                                            'alarm_clock',
                                             time.isEmpty ? '—' : time,
                                             fontSize: 14,
                                             color: Theme.of(
@@ -4890,11 +5816,11 @@ class ArchivedDayDetailsScreen extends StatelessWidget {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.end,
                                             children: [
-                                              const Text(
-                                                '🪙',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                ),
+                                              Image.asset(
+                                                'assets/images/profit_graph.webp',
+                                                width: 18,
+                                                height: 18,
+                                                fit: BoxFit.contain,
                                               ),
                                               const SizedBox(width: 2),
                                               Flexible(
@@ -5108,7 +6034,7 @@ class _AboutUpdateDialogState extends State<_AboutUpdateDialog> {
                       color: const Color(0xFFD5F4E4),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('CurConv',
+                    child: const Text('CurLedger',
                         style: TextStyle(
                             color: Color(0xFF087B50),
                             fontWeight: FontWeight.bold)),
@@ -5126,13 +6052,17 @@ class _AboutUpdateDialogState extends State<_AboutUpdateDialog> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(18),
-                  child: Image.asset('assets/icon/app_icon.png',
+                  child: Image.asset('assets/icon/app_icon.webp',
                       fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(height: 12),
-              const Text('CurConv',
+              const Text('CurLedger',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 4),
+              const Text('Currency Exchange & Record Management',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 13)),
               const SizedBox(height: 6),
               Text('Version $curconvAppVersion',
                   style: const TextStyle(color: Colors.grey)),

@@ -9,6 +9,7 @@ class BackupData {
     'archived_summaries',
     'merchant_transactions',
     'merchant_history_snapshots',
+    'debt_records',
   ];
 
   final Map<String, List<String>> records;
@@ -43,7 +44,7 @@ class BackupData {
         if (decoded is! Map<String, dynamic>) {
           throw FormatException('$key: JSON မှတ်တမ်းပုံစံ မမှန်ပါ။');
         }
-        _validateRecord(key, decoded);
+        if (key != 'debt_records') _validateRecord(key, decoded);
       }
       records[key] = rows;
     }
