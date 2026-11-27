@@ -23,10 +23,13 @@ workflows:
           test -f ios/Runner/GoogleService-Info.plist
           test -f ios/Podfile
 
-      - name: Sync CocoaPods dependencies
+      - name: Sync and diagnose CocoaPods lockfiles
         script: |
+          flutter pub get
           cd ios
           pod install --repo-update
+          echo "Comparing Podfile.lock with Pods/Manifest.lock"
+          diff -u Podfile.lock Pods/Manifest.lock || echo "NOTICE: CocoaPods lockfiles differ"
           cd ..
 
       - name: Build unsigned iOS app (Firebase SPM)
